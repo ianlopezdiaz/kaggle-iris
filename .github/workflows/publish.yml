@@ -1,0 +1,36 @@
+name: Publish site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Conda environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: kaggle-iris
+          auto-activate-base: false
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Execute notebooks
+        shell: bash -l {0}
+        run: jupyter nbconvert --to notebook --execute --inplace notebooks/*.ipynb
+
+      - name: Render and publish to gh-pages
+        uses: quarto-dev/quarto-actions/publish@v2
+        with:
+          target: gh-pages
+          render: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
