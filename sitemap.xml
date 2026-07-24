@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://ianlopezdiaz.github.io/kaggle-iris/index.html</loc>
+    <lastmod>2026-07-24T02:45:00.156Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ianlopezdiaz.github.io/kaggle-iris/notebooks/02_modeling_and_evaluation.html</loc>
+    <lastmod>2026-07-24T02:45:00.178Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ianlopezdiaz.github.io/kaggle-iris/notebooks/01_eda_and_feature_engineering.html</loc>
+    <lastmod>2026-07-24T02:45:00.175Z</lastmod>
+  </url>
+</urlset>
