@@ -338,15 +338,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#load-data" id="toc-load-data" class="nav-link active" data-scroll-target="#load-data">Load data</a></li>
+  <li><a href="#dataset-description" id="toc-dataset-description" class="nav-link active" data-scroll-target="#dataset-description">Dataset description</a></li>
+  <li><a href="#imports" id="toc-imports" class="nav-link" data-scroll-target="#imports">Imports</a></li>
+  <li><a href="#load-data" id="toc-load-data" class="nav-link" data-scroll-target="#load-data">Load data</a></li>
   <li><a href="#sanity-checks" id="toc-sanity-checks" class="nav-link" data-scroll-target="#sanity-checks">Sanity checks</a></li>
   <li><a href="#univariate-analysis" id="toc-univariate-analysis" class="nav-link" data-scroll-target="#univariate-analysis">Univariate analysis</a></li>
   <li><a href="#bivariate-analysis" id="toc-bivariate-analysis" class="nav-link" data-scroll-target="#bivariate-analysis">Bivariate analysis</a></li>
-  <li><a href="#separability-story" id="toc-separability-story" class="nav-link" data-scroll-target="#separability-story">Separability story</a></li>
   <li><a href="#feature-engineering" id="toc-feature-engineering" class="nav-link" data-scroll-target="#feature-engineering">Feature engineering</a></li>
   <li><a href="#scaling" id="toc-scaling" class="nav-link" data-scroll-target="#scaling">Scaling</a></li>
   <li><a href="#d-projection-pca-and-lda" id="toc-d-projection-pca-and-lda" class="nav-link" data-scroll-target="#d-projection-pca-and-lda">2D projection (PCA and LDA)</a></li>
   <li><a href="#save-outputs" id="toc-save-outputs" class="nav-link" data-scroll-target="#save-outputs">Save outputs</a></li>
+  <li><a href="#closing-remarks" id="toc-closing-remarks" class="nav-link" data-scroll-target="#closing-remarks">Closing remarks</a></li>
   </ul>
 </nav>
     </div>
@@ -373,8 +375,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>Exploratory analysis of the Iris dataset and the engineered features used for modeling.</p>
-<div id="73e5f332" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:17.031490Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:17.031050Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:17.745806Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:17.745375Z&quot;}}" data-execution_count="1">
+<p>Before fitting any classifier, it helps to understand the data: what the features look like, how well they separate the three species, and whether anything needs to be fixed before modeling.</p>
+<p>In this notebook we will:</p>
+<ul>
+<li>Load the Iris dataset and run basic sanity checks (shape, types, missing values, duplicates, class balance).</li>
+<li>Look at the distribution of each measurement, split by species.</li>
+<li>Look at how the four measurements relate to each other.</li>
+<li>Derive a small set of engineered features (areas and ratios) that may help models beyond the four raw measurements.</li>
+<li>Scale the features and project them into two dimensions, for later visualization.</li>
+<li>Save the processed dataset and feature matrix used by the modeling notebook.</li>
+</ul>
+<section id="dataset-description" class="level2">
+<h2 class="anchored" data-anchor-id="dataset-description">Dataset description</h2>
+<p>The dataset contains one row per flower, with four continuous measurements (in centimeters) and a species label:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>sepal_length</code></td>
+<td>Length of the sepal, in centimeters.</td>
+</tr>
+<tr class="even">
+<td><code>sepal_width</code></td>
+<td>Width of the sepal, in centimeters.</td>
+</tr>
+<tr class="odd">
+<td><code>petal_length</code></td>
+<td>Length of the petal, in centimeters.</td>
+</tr>
+<tr class="even">
+<td><code>petal_width</code></td>
+<td>Width of the petal, in centimeters.</td>
+</tr>
+<tr class="odd">
+<td><code>species</code></td>
+<td>Target variable. One of <code>Iris-setosa</code>, <code>Iris-versicolor</code>, or <code>Iris-virginica</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>There are 150 rows total, 50 per species, with no missing values. This is one of the cleanest datasets commonly used for classification, so most of the work here is in understanding the features rather than cleaning them.</p>
+</section>
+<section id="imports" class="level2">
+<h2 class="anchored" data-anchor-id="imports">Imports</h2>
+<p>First, we import the libraries used throughout the analysis.</p>
+<div id="fb68f8f8" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:12.192461Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:12.192043Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:12.924916Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:12.924552Z&quot;}}" data-execution_count="1">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -388,9 +441,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>sns.set_theme(style<span class="op">=</span><span class="st">"whitegrid"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+</section>
 <section id="load-data" class="level2">
 <h2 class="anchored" data-anchor-id="load-data">Load data</h2>
-<div id="e96124bc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:17.747035Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:17.746867Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:17.753724Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:17.753407Z&quot;}}" data-execution_count="2">
+<p>The raw CSV is the only input file. We load it and take a first look at its contents.</p>
+<div id="cafd004d" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:12.926520Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:12.926371Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:12.932648Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:12.932489Z&quot;}}" data-execution_count="2">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> pd.read_csv(<span class="st">"../data/raw/IRIS.csv"</span>)</span>
@@ -461,7 +516,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="sanity-checks" class="level2">
 <h2 class="anchored" data-anchor-id="sanity-checks">Sanity checks</h2>
-<div id="04781c01" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:17.754937Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:17.754822Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:17.758617Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:17.758365Z&quot;}}" data-execution_count="3">
+<p>Before any visualization, we check the basic shape and quality of the data: how many rows and columns, whether the types are as expected, whether any values are missing, whether any rows are exact duplicates, and whether the three species are balanced.</p>
+<div id="7db4911e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:12.933798Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:12.933721Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:12.936892Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:12.936726Z&quot;}}" data-execution_count="3">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Shape:"</span>, raw.shape)</span>
@@ -506,11 +562,13 @@ Iris-virginica     50
 Name: count, dtype: int64</code></pre>
 </div>
 </div>
+<p>The dataset is exactly as expected: 150 rows, four numeric measurements plus the species label, no missing values, and a perfectly balanced 50/50/50 split across species. Balanced classes mean plain accuracy is a reasonable metric here, and we do not need class-weighting strategies during modeling.</p>
+<p>The one finding worth a second look is the three duplicate rows. Checking them individually shows that they are legitimate repeated measurements, not conflicting labels: the same combination of the four measurements appears more than once, always for the same species. This is plausible for a small dataset measured at a coarse precision, where distinct flowers can share identical rounded measurements. We keep them: they represent real, distinct observations rather than an artifact of the data pipeline, and dropping them would only shrink two of the three already-small classes.</p>
 </section>
 <section id="univariate-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="univariate-analysis">Univariate analysis</h2>
-<p>Distribution of each measurement, split by species.</p>
-<div id="d8a2c316" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:17.759461Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:17.759384Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:18.058399Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:18.058121Z&quot;}}" data-execution_count="4">
+<p>We start simple: for each of the four measurements, how does its distribution differ across species? A boxplot per feature, split by species, gives a quick view of both the typical value and the spread within each species.</p>
+<div id="20fb771a" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:12.937860Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:12.937783Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:13.220357Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:13.220038Z&quot;}}" data-execution_count="4">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">"sepal_length"</span>, <span class="st">"sepal_width"</span>, <span class="st">"petal_length"</span>, <span class="st">"petal_width"</span>]</span>
@@ -530,11 +588,13 @@ Name: count, dtype: int64</code></pre>
 </div>
 </div>
 </div>
+<p><code>Iris-setosa</code> stands apart from the other two species on every feature, most dramatically on petal length and petal width, where its values barely overlap with the other two species at all. <code>Iris-versicolor</code> and <code>Iris-virginica</code> are harder to tell apart: their sepal width distributions overlap almost completely, and even petal length and petal width, the most informative features, show a range where the two species overlap.</p>
+<p>This already tells us most of what to expect from any classifier: separating setosa from the other two should be close to trivial, while distinguishing versicolor from virginica is where the real difficulty lies.</p>
 </section>
 <section id="bivariate-analysis" class="level2">
 <h2 class="anchored" data-anchor-id="bivariate-analysis">Bivariate analysis</h2>
-<p>Pairwise relationships and correlation structure.</p>
-<div id="1032ba15" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:18.059340Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:18.059247Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:18.720010Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:18.719733Z&quot;}}" data-execution_count="5">
+<p>Looking at one feature at a time hides relationships between features. A pairplot shows every pair of measurements at once, and a correlation matrix summarizes the strength of those relationships numerically.</p>
+<div id="67a2316e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:13.221508Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:13.221416Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:13.854481Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:13.854299Z&quot;}}" data-execution_count="5">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>sns.pairplot(raw, hue<span class="op">=</span><span class="st">"species"</span>, corner<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -547,7 +607,8 @@ Name: count, dtype: int64</code></pre>
 </div>
 </div>
 </div>
-<div id="26276bef" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:18.721185Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:18.721073Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:18.805381Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:18.805042Z&quot;}}" data-execution_count="6">
+<p>The pairplot confirms the univariate story and adds detail: setosa forms a tight, well-separated cluster in every pairwise view, especially any plot involving petal length or petal width. Versicolor and virginica form two clusters that are visibly distinct but adjacent, with the most overlap on sepal width against any other feature, and the least overlap on petal length against petal width, where the two species are almost, but not entirely, separable by a straight line.</p>
+<div id="9bf4c1bc" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:13.855456Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:13.855371Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:13.936145Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:13.935760Z&quot;}}" data-execution_count="6">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> raw[features].corr()</span>
@@ -565,15 +626,18 @@ Name: count, dtype: int64</code></pre>
 </div>
 </div>
 </div>
-</section>
-<section id="separability-story" class="level2">
-<h2 class="anchored" data-anchor-id="separability-story">Separability story</h2>
-<p>Setosa is linearly separable from the other two species on nearly every feature, especially petal length and petal width. Versicolor and virginica overlap more, with petal measurements offering the clearest (though imperfect) separation. This overlap is the main source of classification error to watch for in the modeling notebook.</p>
+<p>The correlation matrix quantifies this. <code>petal_length</code> and <code>petal_width</code> are almost perfectly correlated with each other and both correlate strongly with <code>sepal_length</code>. <code>sepal_width</code> is the odd one out: it is only weakly correlated with the other three features, which matches its comparatively poor ability to separate the species. This strong correlation between the petal measurements will resurface later: two highly correlated features are somewhat redundant, but for tree-based and margin-based classifiers this redundancy is rarely a problem, unlike with a plain linear model, where multicollinearity can affect coefficient stability.</p>
+<p>Combining both views: setosa is essentially solved by any reasonable model, and the versicolor/virginica boundary, mostly visible in the petal measurements, is the main source of classification error to watch for in the modeling notebook.</p>
 </section>
 <section id="feature-engineering" class="level2">
 <h2 class="anchored" data-anchor-id="feature-engineering">Feature engineering</h2>
-<p>The raw features are already clean, so engineering focuses on derived measurements that add analytical value: areas and length/width ratios between petals and sepals.</p>
-<div id="7f589421" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:18.806845Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:18.806757Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:18.812190Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:18.812032Z&quot;}}" data-execution_count="7">
+<p>The four raw measurements are already clean and already carry most of the signal, as the plots above show. Feature engineering here does not fix data problems; it adds a handful of derived measurements that summarize the raw ones differently and may make the versicolor/virginica boundary easier for some models to find:</p>
+<ul>
+<li><code>sepal_area</code> and <code>petal_area</code> (length times width) approximate the two-dimensional size of each organ, rather than treating length and width as independent.</li>
+<li><code>petal_sepal_length_ratio</code> and <code>petal_sepal_width_ratio</code> capture the proportions of petal to sepal, which may vary by species independently of overall flower size.</li>
+</ul>
+<p>These are simple, interpretable transformations rather than an exhaustive search over feature combinations, in keeping with a dataset this small and this clean.</p>
+<div id="c0f78329" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:13.937123Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:13.937031Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:13.942684Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:13.942505Z&quot;}}" data-execution_count="7">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> raw.copy()</span>
@@ -674,8 +738,8 @@ Name: count, dtype: int64</code></pre>
 </section>
 <section id="scaling" class="level2">
 <h2 class="anchored" data-anchor-id="scaling">Scaling</h2>
-<p>Standardize features for the distance-based models used in the modeling notebook (KNN, SVM).</p>
-<div id="bebb03ef" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:18.813362Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:18.813289Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:18.816190Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:18.816023Z&quot;}}" data-execution_count="8">
+<p>Two of the models compared in the next notebook, KNN and SVM, measure distance directly in feature space, so a feature on a larger numeric scale (the area features are roughly 10-20, versus 1-7 for the raw measurements) would dominate that distance calculation regardless of how informative it actually is. Standardizing every feature to zero mean and unit variance removes this bias. Tree-based models do not need this step, since they only compare feature values within a single feature, not across features, but we scale the entire feature matrix uniformly since it does not hurt tree-based models and keeps the pipeline in the modeling notebook simple: one feature matrix, used unchanged by every model.</p>
+<div id="b0e42899" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:13.943471Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:13.943395Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:13.946359Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:13.946195Z&quot;}}" data-execution_count="8">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>feature_cols <span class="op">=</span> [</span>
@@ -697,8 +761,13 @@ Name: count, dtype: int64</code></pre>
 </section>
 <section id="d-projection-pca-and-lda" class="level2">
 <h2 class="anchored" data-anchor-id="d-projection-pca-and-lda">2D projection (PCA and LDA)</h2>
-<p>Used later to visualize decision boundaries on a 2D plane.</p>
-<div id="199e8343" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:18.817256Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:18.817182Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:18.821556Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:18.821388Z&quot;}}" data-execution_count="9">
+<p>The feature matrix has eight dimensions, which cannot be plotted directly. To visualize decision boundaries in the next notebook, we need a 2D projection. Two standard techniques give different views:</p>
+<ul>
+<li>PCA (Principal Component Analysis) finds the directions of maximum variance without using the species labels at all. It is a fair, unsupervised summary of the feature space.</li>
+<li>LDA (Linear Discriminant Analysis) instead finds the directions that best separate the known classes, using the species labels directly.</li>
+</ul>
+<p>Because LDA has access to the labels it is optimizing for, its projection tends to look more separated than PCA’s, even if the underlying classifiers see the same eight features either way. We compute both here for comparison, but only the PCA projection is carried forward to the decision boundary plots in the modeling notebook, since it does not have this built-in advantage.</p>
+<div id="f2f3505e" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:13.947087Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:13.947014Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:13.951507Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:13.951330Z&quot;}}" data-execution_count="9">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>)</span>
@@ -717,7 +786,7 @@ Name: count, dtype: int64</code></pre>
 <pre><code>PCA explained variance ratio: [0.73193245 0.22906948]</code></pre>
 </div>
 </div>
-<div id="118444ac" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:18.822582Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:18.822509Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:19.034510Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:19.034252Z&quot;}}" data-execution_count="10">
+<div id="0747afb7" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:13.952234Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:13.952158Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:14.157434Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:14.157051Z&quot;}}" data-execution_count="10">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">5</span>))</span>
@@ -735,11 +804,12 @@ Name: count, dtype: int64</code></pre>
 </div>
 </div>
 </div>
+<p>The PCA projection reproduces what we already saw: setosa well apart from the other two, and versicolor/virginica adjacent with some overlap in the projected 2D space. The LDA projection separates all three species almost perfectly, which is expected given that it was fit using the species labels; it does not mean a classifier trained on the same features would do this well, only that a supervised, class-aware linear projection can separate this particular dataset well. This is a useful reminder to keep in mind when comparing PCA-based visualizations against classifier performance in the next notebook: the two are not directly comparable.</p>
 </section>
 <section id="save-outputs" class="level2">
 <h2 class="anchored" data-anchor-id="save-outputs">Save outputs</h2>
-<p>Persist the cleaned/engineered dataset and the modeling feature matrix.</p>
-<div id="f8ec841c" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-24T02:44:19.036181Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-24T02:44:19.036061Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-24T02:44:19.049925Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-24T02:44:19.049729Z&quot;}}" data-execution_count="11">
+<p>The engineered and scaled feature matrix, along with the 2D projections, are saved to disk so the modeling notebook can load them directly without repeating this preprocessing.</p>
+<div id="4c2fc15f" class="cell" data-quarto-private-1="{&quot;key&quot;:&quot;execution&quot;,&quot;value&quot;:{&quot;iopub.execute_input&quot;:&quot;2026-07-25T13:55:14.158466Z&quot;,&quot;iopub.status.busy&quot;:&quot;2026-07-25T13:55:14.158378Z&quot;,&quot;iopub.status.idle&quot;:&quot;2026-07-25T13:55:14.169526Z&quot;,&quot;shell.execute_reply&quot;:&quot;2026-07-25T13:55:14.169350Z&quot;}}" data-execution_count="11">
 <details open="" class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>data.to_parquet(<span class="st">"../data/processed/data.parquet"</span>, index<span class="op">=</span><span class="va">False</span>)</span>
@@ -835,6 +905,11 @@ Name: count, dtype: int64</code></pre>
 </div>
 </div>
 </div>
+</section>
+<section id="closing-remarks" class="level2">
+<h2 class="anchored" data-anchor-id="closing-remarks">Closing remarks</h2>
+<p>This EDA leaves us with a clear picture: setosa is essentially separable from the other two species on almost any feature, while versicolor and virginica overlap enough that no single feature, engineered or raw, cleanly separates them. The four raw measurements, four engineered features, and the class balance found here are the assumptions the next notebook builds on.</p>
+<p>In the <a href="../notebooks/02_modeling_and_evaluation.html">next notebook</a>, we compare several classifiers using cross-validation, given how few rows there are, and use confusion matrices and 2D decision boundaries to check whether the versicolor/virginica overlap identified here shows up as the main source of prediction error.</p>
 
 
 </section>
